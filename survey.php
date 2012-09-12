@@ -38,7 +38,7 @@ $max_fetches_per_edit = 3;
 
 /* Name of the table caching the survey results. You should set it to a table
    you have access to. */
-$diff_info_table = 'u_alchimista.cs_diffinfo';
+$diff_info_table = 'u_'.get_current_user().'.cs_diffinfo';
 
 /* Every $seconds_per_refresh seconds, if the script is still scanning
    contributions it will stop, show progress, and ask the client to
