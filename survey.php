@@ -38,7 +38,7 @@ $max_fetches_per_edit = 3;
 
 /* Name of the table caching the survey results. You should set it to a table
    you have access to. */
-$diff_info_table = 'u_dcoetzee.cs_diffinfo';
+$diff_info_table = 'u_alchimista.cs_diffinfo';
 
 /* Every $seconds_per_refresh seconds, if the script is still scanning
    contributions it will stop, show progress, and ask the client to
@@ -62,9 +62,10 @@ function microtime_float()
 
 /* Build a URL for invoking the current script with the given set of
    parameters. */
-function get_params($user, $hide_reverts, $hide_minor_edits, $articles_per_section, $major_edit_char_count, $offset, $limit, $start_timestamp, $end_timestamp)
+function get_params($user, $language, $hide_reverts, $hide_minor_edits, $articles_per_section, $major_edit_char_count, $offset, $limit, $start_timestamp, $end_timestamp)
 {
   return 'user=' . urlencode($user) . '&' .
+  	 'language=' . urlencode($language) . '&' .
 	 'hide_reverts=' . urlencode($hide_reverts) . '&' .
 	 'hide_minor_edits=' . urlencode($hide_minor_edits) . '&' .
 	 'articles_per_section=' . urlencode($articles_per_section) . '&' .
@@ -177,10 +178,14 @@ ignore_user_abort(false);
 # Get starting time to measure time elapsed later.
 $time_start = microtime_float();
 
+# Get and sanitize project language
+$language = trim(html_entity_decode($_GET['language'], ENT_QUOTES, 'UTF-8'));
+
 # Connect to database
 $toolserver_mycnf = parse_ini_file("/home/".get_current_user()."/.my.cnf");
-$db = mysql_connect('enwiki-p.userdb.toolserver.org', $toolserver_mycnf['user'], $toolserver_mycnf['password']) or die(mysql_error());
-mysql_select_db('enwiki_p', $db) or die(mysql_error());
+$db = mysql_connect($language . 'wiki-p.userdb.toolserver.org', $toolserver_mycnf['user'], $toolserver_mycnf['password']) or die(mysql_error());
+$dbase = $language."wiki_p";
+mysql_select_db($dbase, $db) or die(mysql_error());
 
 # Get and sanitize user name
 $user_name = ucfirst(trim(html_entity_decode($_GET['user'], ENT_QUOTES, 'UTF-8')));
@@ -517,16 +522,16 @@ if ($output == 'html') {
 
   # Print convenience links related to this user.
   # Based on Template:User5 (http://en.wikipedia.org/wiki/Template:User5)
-  echo '<p><a href="http://en.wikipedia.org/wiki/User:' . $user_name_url . '">' . htmlspecialchars($user_name) . '</a> ';
+  echo '<p><a href="http://' . $language . '.wikipedia.org/wiki/User:' . $user_name_url . '">' . htmlspecialchars($user_name) . '</a> ';
   echo '(';
-  echo '<a href="http://en.wikipedia.org/wiki/User talk:' . $user_name_url . '">' . talk . '</a>&nbsp;<b>&middot;</b> ';
-  echo '<a href="http://en.wikipedia.org/wiki/Special:Contributions/' . $user_name_url . '">' . contribs . '</a>&nbsp;<b>&middot;</b> ';
-  echo '<a href="http://en.wikipedia.org/wiki/Special:DeletedContributions/' . $user_name_url . '">' . 'deleted&nbsp;contribs' . '</a>&nbsp;<b>&middot;</b> ';
-  echo '<a href="http://en.wikipedia.org/wiki/Special:Log/move?user=' . $user_name_url . '">' . 'page&nbsp;moves' . '</a>&nbsp;<b>&middot;</b> ';
-  echo '<a href="http://en.wikipedia.org/wiki/Special:Blockip/' . $user_name_url . '">' . 'block&nbsp;user' . '</a>&nbsp;<b>&middot;</b> ';
-  echo '<a href="http://en.wikipedia.org/w/index.php?title=Special:Log&type=block&page=User:' . $user_name_url . '">' . 'block&nbsp;log' . '</a>&nbsp;<b>&middot;</b> ';
-  echo '<a href="http://en.wikipedia.org/wiki/Wikipedia:Requests for checkuser/Case/' . $user_name_url . '">' . 'rfcu' . '</a>&nbsp;<b>&middot;</b> ';
-  echo '<a href="http://en.wikipedia.org/wiki/Wikipedia:Contributor_copyright_investigations/' . $user_name_url . '">' . 'cci' . '</a>';
+  echo '<a href="http://' . $language . '.wikipedia.org/wiki/User talk:' . $user_name_url . '">' . talk . '</a>&nbsp;<b>&middot;</b> ';
+  echo '<a href="http://' . $language . '.wikipedia.org/wiki/Special:Contributions/' . $user_name_url . '">' . contribs . '</a>&nbsp;<b>&middot;</b> ';
+  echo '<a href="http://' . $language . '.wikipedia.org/wiki/Special:DeletedContributions/' . $user_name_url . '">' . 'deleted&nbsp;contribs' . '</a>&nbsp;<b>&middot;</b> ';
+  echo '<a href="http://' . $language . '.wikipedia.org/wiki/Special:Log/move?user=' . $user_name_url . '">' . 'page&nbsp;moves' . '</a>&nbsp;<b>&middot;</b> ';
+  echo '<a href="http://' . $language . '.wikipedia.org/wiki/Special:Blockip/' . $user_name_url . '">' . 'block&nbsp;user' . '</a>&nbsp;<b>&middot;</b> ';
+  echo '<a href="http://' . $language . '.wikipedia.org/w/index.php?title=Special:Log&type=block&page=User:' . $user_name_url . '">' . 'block&nbsp;log' . '</a>&nbsp;<b>&middot;</b> ';
+  echo '<a href="http://' . $language . '.wikipedia.org/wiki/Wikipedia:Requests for checkuser/Case/' . $user_name_url . '">' . 'rfcu' . '</a>&nbsp;<b>&middot;</b> ';
+  echo '<a href="http://' . $language . '.wikipedia.org/wiki/Wikipedia:Contributor_copyright_investigations/' . $user_name_url . '">' . 'cci' . '</a>';
   echo ')</p>';
 }
 if ($output == 'wiki') {
@@ -697,7 +702,7 @@ while ($row = mysql_fetch_array($result)) {
     /* Print the diff. We use Template:Dif on En wiki in order to keep the
        wikitext small - if you decide to use complete URLs or create your own
        template, remember the <span class="plainlinks">. */
-    $diff_url = "http://en.wikipedia.org/w/index.php?diff=" . $row2['diffinfo_rev'];
+    $diff_url = "http://" . $language . ".wikipedia.org/w/index.php?diff=" . $row2['diffinfo_rev'];
     if (!is_null($row2['diffinfo_prev_rev']))
     {
       $diff_url = $diff_url . "&oldid=prev";
@@ -730,7 +735,7 @@ while ($row = mysql_fetch_array($result)) {
   if ($output == 'html') {
     echo '<li>';
     if ($is_creator) { echo '<b>N</b> '; }
-    echo '<a href="http://en.wikipedia.org/wiki/' . $page_title . '">' . $pretty_page_title . '</a>: ';
+    echo '<a href="http://' . $language . '.wikipedia.org/wiki/' . $page_title . '">' . $pretty_page_title . '</a>: ';
     echo '(' . $row['count'] . ' edits, ' . $major_edits . ' major, ' . ($row['max_change'] > 0 ? '+' : '') . $row['max_change'] . ') ';
   } else if ($output == 'wiki') {
     echo '* ';

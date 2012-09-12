@@ -34,7 +34,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 <p>Please select a user to run a survey on, or enter the name of a user who has already been surveyed to view their report.</p>
 
 <form name="survey1" action="survey.php" method="get">
-User: <input type="text" name="user">
+<p>User: <input type="text" name="user" /></p>
+<p>Language: <input type="text" name="language" /></p>
 <input type="submit" value="Survey user" />
 </form>
 
